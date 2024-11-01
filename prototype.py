@@ -4,7 +4,6 @@ from openai import OpenAI
 client = OpenAI()
 
 file_path = "./test-code-1.txt"
-
 with open(file_path, 'r') as file:
     code = file.read()
 
