@@ -1,0 +1,15 @@
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+}
+
+.editor-container {
+    box-sizing: border-box;
+    padding: 20px;
+    padding-top: 0px;
+}
+
+.text-container {
+    box-sizing: border-box;
+    padding-left: 20px;
+}
