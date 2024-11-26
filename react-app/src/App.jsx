@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-// import Editor from './editor.jsx'
 import Editor from './CM5Editor.jsx'
 import './App.css'
 import starterCode from './starter-code.js?raw';
@@ -22,8 +21,9 @@ function App() {
 
   return (
     <>
-        <Navbar />
+      <div className='editor-container'>
         <Editor ref={editorRef} initialCode={starterCode} />
+      </div>
     </>
   )
 }

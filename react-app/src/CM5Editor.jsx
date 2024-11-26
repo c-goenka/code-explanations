@@ -16,11 +16,11 @@ class Editor extends Component {
         // console.log("word!");
       }
     }
-    
+
     this._markedLines = [];
     this._activeEvaluations = [];
   }
-  
+
   createError(severity, line, ch, message, showMessage) {
     let charIndicator = document.createElement('div');
     charIndicator.className = "callout error";
@@ -37,7 +37,7 @@ class Editor extends Component {
       this._cm.addWidget({line:line+1, ch:ch}, messageBox);
     } else {
       charIndicator.onmouseenter = () => {
-        this._cm.addWidget({line:line+1, ch:ch}, messageBox);      
+        this._cm.addWidget({line:line+1, ch:ch}, messageBox);
       }
     }
     messageBox.getElementsByClassName('close')[0].onclick = () => {
@@ -47,17 +47,17 @@ class Editor extends Component {
     var lineHandle = this._cm.addLineClass(line+1, 'wrap', 'line-warning');
     this._markedLines.push(lineHandle);
   }
-  
+
   clearErrors() {
     this._markedLines.forEach(line => this._cm.removeLineClass(line, 'wrap', 'line-warning'));
     this._markedLines = [];
     Array.from(document.getElementsByClassName('error')).forEach((elt) => elt.remove());
   }
-  
+
   getNodePosition(node) {
     return this._cm.posFromIndex(node.start);
   }
-  
+
   componentDidMount() {
     // console.log("making CM", Editor.lintOptions)
     if (this._cm) {
@@ -99,42 +99,42 @@ class Editor extends Component {
       // }
     });
     this._cm.on('change', () => { this._errorsFrozen = false; this.props.onChange() });
-    
+
     this._cm.setSize("100%", "100%")
   }
-  
+
   // _cm: CodeMirror.Editor
-  
+
   render() {
     return <div className="cm-container" ref={(elt) => this.cmContainer = elt}></div>
   }
-  
+
   currentCode() {
     return this._cm.getDoc().getValue();
   }
-  
+
   setCode(code) {
     this._cm.getDoc().setValue(code);
   }
-  
+
   disableEditing() {
     this._cm.setOption('readOnly', 'nocursor');
   }
-  
+
   enableEditing() {
     this._cm.setOption('readOnly', false);
   }
-  
+
   // freezeErrors() {
   //   this._errorsFrozen = true;
   // }
-  
+
   // highlightNode(frame, stack) {
   //   var nodeType = frame.node.type;
   //   if (nodeType === 'Program') { return; }
   //   var startPos = this._cm.posFromIndex(frame.node.start);
   //   var endPos = this._cm.posFromIndex(frame.node.end);
-    
+
   //   var mark = this._cm.markText(startPos, endPos, {className:'nodehighlight eval'+stack.length});
 
   //   if (! frame.node.__extra) {
@@ -160,39 +160,39 @@ class Editor extends Component {
   //     if (! extra(decl).callout) {
   //       let elt = document.createElement('div')
   //       elt.className = "callout vartracker"
-      
+
   //       let handler = new SingleVarTracker(frame.scope, decl, elt);
   //       handler.render();
 
   //       let pos = this._cm.posFromIndex(decl.init ? decl.init.start : decl.end);
   //       this._cm.addWidget(pos, elt);
-        
+
   //       extra(decl).callout = handler;
-        
+
   //       return handler;
   //     } else {
   //       return null;
   //     }
   //   }).filter(h => h !== null);
   // }
-  
+
   // showLocalVariables(frame) {
   //   return frame.node.declarations.map(decl => {
   //     let elt = document.createElement('div')
   //     elt.className = "callout vartracker"
-    
+
   //     let handler = new SingleVarTracker(frame.scope, decl, elt);
   //     handler.render();
 
   //     let pos = this._cm.posFromIndex(decl.init ? decl.init.start : decl.end);
   //     this._cm.addWidget(pos, elt);
-      
+
   //     extra(decl).callout = handler;
-      
+
   //     return handler;
-  //   }).filter(h => h !== null);    
+  //   }).filter(h => h !== null);
   // }
-  
+
   addLineAnnotation(line, annotation) {
     // let line = Math.floor(Math.random() * this._cm.getDoc().lineCount());
     let annotationElement = document.createElement('div');
@@ -211,21 +211,21 @@ class Editor extends Component {
   // showFrameScope(frame) {
   //   let node = frame.node;
   //   let scope = frame.scope;
-    
+
   //   let scopeViewElement = document.createElement('div');
   //   scopeViewElement.className = "callout vartracker";
-    
+
   //   let scopeHandler = new Scope(scope, scopeViewElement);
   //   scopeHandler.render();
-    
+
   //   let pos = this._cm.posFromIndex(node.start);
-    
+
   //   this._cm.addWidget(pos, scopeViewElement);
   //   node.__extra.scope = scopeHandler;
 
   //   return scopeHandler;
   // }
-  
+
   // removeFrameScope(frame) {
   //   if (frame.node.__extra && frame.node.__extra.scope) {
   //     frame.node.__extra.scope.remove();
@@ -234,21 +234,21 @@ class Editor extends Component {
   //     }
   //   }
   // }
-  
+
   // clearFrameScopes() {
   //   Array.from(document.getElementsByClassName('scope')).forEach(elt => elt.parentElement.remove());
   //   Array.from(document.getElementsByClassName('variable')).forEach(elt => elt.parentElement.remove());
   // }
-  
+
   // createExpressionDemonstratorCallout(index) {
   //   let elt = document.createElement('div');
   //   elt.className = "callout expression-demonstrator";
-    
+
   //   this._cm.addWidget(this._cm.posFromIndex(index), elt);
-    
+
   //   return elt;
   // }
-    
+
   // clearExpressionDemonstrators() {
   //   Array.from(document.getElementsByClassName('expression-demonstrator')).forEach(elt => elt.remove());
   // }
@@ -269,11 +269,11 @@ Editor.lintOptions = {
 //     this.elt = elt;
 //     this.showHidden = false;
 //   }
-  
+
 //   static functionName(v, plainText=false) {
 //     return v.nativeFunc ? (v.__name || v.nativeFunc.name) : (v.node.id ? v.node.id.name : (plainText ? "anonymous" : "<em>anonymous</em>"))
 //   }
-  
+
 //   static tableIfy(arrOfObjects, strong=false, depth=0) {
 //     let cNames = Object.keys(arrOfObjects[0].properties);
 //     return '<table><thead>'+
@@ -282,7 +282,7 @@ Editor.lintOptions = {
 //       arrOfObjects.map((o,i) => '<tr><th>'+i+'</th>'+cNames.map(name => '<td>'+(name in o.properties ? Scope.stringValue(o.properties[name], strong, depth+1) : '')+'</td>').join('')+'</tr>').join('')+
 //       '</tbody></table>'
 //   }
-  
+
 //   static stringValue(v, strong=true, depth=0) {
 //     if (depth > 3) {
 //       return "...";
@@ -347,11 +347,11 @@ Editor.lintOptions = {
 //       return hideBadEntities(String(v));
 //     }
 //   }
-  
+
 //   value(k) {
 //     return Scope.stringValue(this.scope.properties[k]);
 //   }
-  
+
 //   render() {
 //     this.elt.innerHTML = ['<table class="scope">',
 //       this.scope.properties
@@ -362,13 +362,13 @@ Editor.lintOptions = {
 //             .join("")
 //         : "",
 //       '</table>'].join('\n');
-          
+
 //   }
-  
+
 //   update() {
 //     this.render();
 //   }
-  
+
 //   remove() {
 //     this.elt.remove();
 //   }
@@ -380,16 +380,16 @@ Editor.lintOptions = {
 //     this.name = declaration.id.name;
 //     this.elt = elt;
 //   }
-  
+
 //   render() {
 //     let v = Scope.stringValue(this.scope.properties[this.name]);
 //     this.elt.innerHTML = `<div class="variable">${v}</div>`
 //   }
-  
+
 //   update() {
 //     this.render();
 //   }
-  
+
 //   remove() {
 //     this.elt.remove();
 //   }
@@ -398,4 +398,5 @@ Editor.lintOptions = {
 
 
 export default Editor;
-export { Editor, Scope };
+// export { Editor, Scope };
+export { Editor };
