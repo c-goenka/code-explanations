@@ -4,3 +4,25 @@
   box-sizing: border-box;
   padding: 2rem;
 }
+
+.annotation {
+  display: block;
+  margin-top: -1.5em;
+  margin-left: 1em;
+  max-height: 1.4em;
+  max-width: 8em;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  border-radius: 0.5em;
+  padding: 0 5px;
+  background: #ccc;
+  z-index: 10000;
+  cursor: pointer;
+}
+
+.annotation:hover {
+  background: #ddd;
+  max-height: none;
+  max-width: none;
+  z-index: 10001;
+}

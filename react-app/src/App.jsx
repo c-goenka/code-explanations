@@ -10,17 +10,31 @@ function App() {
   const [annotations, setAnnotations] = useState([]);
 
   useEffect(() => {
-    runExplainer(); // Call the API logic when the app starts
+    const updateExplanations = async () => {
+      const explanations = await runExplainer(starterCode); // Call the API logic when the app starts
+      const { lineExplanations, blockExplanations } = explanations;
 
-    const interval = setInterval(() => {
-      const editor = editorRef.current;
-      let line = Math.floor(Math.random() * editor.currentCode().split('\n').length);
-      setAnnotations(annotations.concat([editor.addLineAnnotation(line, 'This is a test annotation')]));
-      console.log('annotations:', annotations);
-    }, 3000);
+      // Add line annotations
+      const lineAnnotations = lineExplanations.map(({ lineNumber, explanation }) => {
+        return editorRef.current.addLineAnnotation(lineNumber, explanation);
+      });
+      setAnnotations(annotations.concat(lineAnnotations));
+    }
+    const timeout = setTimeout(updateExplanations, 2000);
 
-    return () => clearInterval(interval);
-  });
+    return () => clearTimeout(timeout);
+
+
+    // Add a line annotation every 3 seconds
+    // const interval = setInterval(() => {
+    //   const editor = editorRef.current;
+    //   let line = Math.floor(Math.random() * editor.currentCode().split('\n').length);
+    //   setAnnotations(annotations.concat([editor.addLineAnnotation(line, 'This is a test annotation')]));
+    //   console.log('annotations:', annotations);
+    // }, 3000);
+
+    // return () => clearInterval(interval);
+  }, []);
 
   return (
     <>

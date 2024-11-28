@@ -201,9 +201,24 @@ class Editor extends Component {
 
     let annotationHandler = null; // new Annotation(this._cm, line, annotationElement);
 
-    let pos = this._cm.posFromIndex(this._cm.getDoc().indexFromPos({line: line+1, ch: 0})-1);
+    let pos = this._cm.posFromIndex(this._cm.getDoc().indexFromPos({line: line, ch: 0})-1);
 
-    this._cm.addWidget({line: line-1, ch: pos.ch}, annotationElement);
+    this._cm.addWidget(pos, annotationElement);
+
+    return annotationHandler;
+  }
+
+  addBlockAnnotation(startLine, endLine, annotation) {
+    // let line = Math.floor(Math.random() * this._cm.getDoc().lineCount());
+    let annotationElement = document.createElement('div');
+    annotationElement.className = 'block-annotation';
+    annotationElement.innerHTML = annotation;
+
+    let annotationHandler = null; // new Annotation(this._cm, line, annotationElement);
+
+    let pos = this._cm.posFromIndex(this._cm.getDoc().indexFromPos({line: line, ch: 0})-1);
+
+    this._cm.addWidget(pos, annotationElement);
 
     return annotationHandler;
   }
