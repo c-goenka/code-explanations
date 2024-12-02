@@ -19,7 +19,7 @@ export default async function runExplainer(code) {
     console.log("Using cached explanation", getCached(code));
     return getCached(code);
   }
-  
+
   const openai = new OpenAI({
     apiKey: import.meta.env.VITE_OPENAI_API_KEY,
     dangerouslyAllowBrowser: true
@@ -50,7 +50,8 @@ export default async function runExplainer(code) {
                 analyze the code that is provided and respond with explanations for the code that match \
                 the requested granularity. For high level explanations, try to understand the goal of \
                 the program and the task acomplished by a section of code and use that in your explanations" },
-      { role: 'user', content: "Explain the following React code line by line; for ease of \
+      { role: 'user', content: "Explain the following React code line by line and blockwise (blocks for code \
+                performing a particular task); for ease of \
                 numbering, each line in the code is prefixed with a line number in the format L1234, \
                 DO NOT INCLUDE THIS IN THE CODE OR EXPLANATION, but do use this number as the\
                 line number.\n\n" + code.split('\n').map((line, i) => `L${i+1}${line}`).join('\n') },

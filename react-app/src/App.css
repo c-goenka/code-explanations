@@ -1,28 +1,70 @@
 .editor-container {
-  /* width: 100vw;
-  height: 100vh; */
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
   padding: 2rem;
 }
 
-.annotation {
+.line-annotation {
   display: block;
   margin-top: -1.5em;
   margin-left: 1em;
   max-height: 1.4em;
   max-width: 8em;
   overflow: hidden;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 0.5em;
   padding: 0 5px;
-  background: #ccc;
+  background: #ddd;
   z-index: 10000;
   cursor: pointer;
 }
 
-.annotation:hover {
-  background: #ddd;
+.line-annotation:hover {
+  background: #eee;
   max-height: none;
   max-width: none;
   z-index: 10001;
+}
+
+.block-annotation {
+  display: block;
+  margin-top: -1.5em;
+  margin-left: 1em;
+  max-height: 1.4em;
+  max-width: 8em;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 0.5em;
+  padding: 0 5px;
+  background: #ddd;
+  z-index: 10000;
+  cursor: pointer;
+}
+
+.block-annotation:hover {
+  background: #eee;
+  max-height: none;
+  max-width: none;
+  z-index: 10001;
+}
+
+
+.vertical-line {
+  position: absolute;
+  width: 5px;
+  background-color: #aaa;
+  z-index: 10000;
+  cursor: pointer;
+  border-radius: 0.5em;
+}
+
+.vertical-line::before {
+  content: '';
+  position: absolute;
+  top: -5px; /* Expand hover area above */
+  bottom: -5px; /* Expand hover area below */
+  left: -5px; /* Expand hover area to the left */
+  right: -5px; /* Expand hover area to the right */
+  background: transparent; /* Invisible but interactive */
 }

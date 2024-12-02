@@ -195,9 +195,37 @@ class Editor extends Component {
 
   addLineAnnotation(line, annotation) {
     // let line = Math.floor(Math.random() * this._cm.getDoc().lineCount());
+
+    // dropdown arrow and text on hover code start
     let annotationElement = document.createElement('div');
-    annotationElement.className = 'annotation';
-    annotationElement.innerHTML = annotation;
+    annotationElement.className = 'line-annotation';
+
+    let arrow = document.createElement('span');
+    arrow.textContent = '▼';
+    arrow.style.cursor = 'pointer';
+    arrow.style.color = '#71797E';
+
+    let annotationText = document.createElement('span')
+    annotationText.innerHTML = annotation;
+    annotationText.style.display = 'none'; // Hide by default
+    annotationText.style.marginLeft = '0.5em';
+
+    // Show/hide annotation text on hover
+    annotationElement.addEventListener('mouseenter', () => {
+      annotationText.style.display = 'inline';
+    });
+    annotationElement.addEventListener('mouseleave', () => {
+      annotationText.style.display = 'none';
+    });
+
+    annotationElement.appendChild(arrow);
+    annotationElement.appendChild(annotationText);
+    // dropdown arrow and text on hover code end
+
+    // Original Code (no dropdown arrows)
+    // let annotationElement = document.createElement('div');
+    // annotationElement.className = 'annotation';
+    // annotationElement.innerHTML = annotation;
 
     let annotationHandler = null; // new Annotation(this._cm, line, annotationElement);
 
@@ -210,17 +238,69 @@ class Editor extends Component {
 
   addBlockAnnotation(startLine, endLine, annotation) {
     // let line = Math.floor(Math.random() * this._cm.getDoc().lineCount());
-    let annotationElement = document.createElement('div');
-    annotationElement.className = 'block-annotation';
-    annotationElement.innerHTML = annotation;
+    // let annotationElement = document.createElement('div');
+    // annotationElement.className = 'block-annotation';
+    // annotationElement.innerHTML = annotation;
 
-    let annotationHandler = null; // new Annotation(this._cm, line, annotationElement);
+    // let startPos = this._cm.posFromIndex(this._cm.getDoc().indexFromPos({line: startLine-1, ch: 0})-1);
+    // this._cm.addWidget(startPos, annotationElement);
 
-    let pos = this._cm.posFromIndex(this._cm.getDoc().indexFromPos({line: line, ch: 0})-1);
+    // Find the longest line in the block
+    let maxLineLength = 0;
+    let longestLine = startLine; // Default to the start line
+    for (let i = startLine - 1; i <= endLine - 1; i++) {
+      const lineContent = this._cm.getLine(i); // Get content of each line
+      if (lineContent.length > maxLineLength) {
+        maxLineLength = lineContent.length;
+        longestLine = i;
+      }
+    }
 
-    this._cm.addWidget(pos, annotationElement);
+    // Calculate the position of the last character in the longest line
+    const longestLineContent = this._cm.getLine(longestLine);
+    const lastCharCoords = this._cm.charCoords(
+      { line: longestLine, ch: longestLineContent.length }, // Position of the last character
+      'local'
+    );
 
-    return annotationHandler;
+    // Calculate the top and bottom positions of the block
+    const startCoords = this._cm.charCoords({ line: startLine - 1, ch: 0 }, 'local');
+    const endCoords = this._cm.charCoords({ line: endLine - 1, ch: 0 }, 'local');
+
+    // Create the vertical line
+    const verticalLine = document.createElement('div');
+    verticalLine.className = 'vertical-line';
+
+    // Set its position and dimensions
+    verticalLine.style.top = `${startCoords.top}px`;
+    verticalLine.style.left = `${lastCharCoords.right + 100}px`; // Adjust this value as needed
+    verticalLine.style.height = `${endCoords.bottom - startCoords.top}px`;
+
+    // Add hoverable explanation
+    const explanationElement = document.createElement('div');
+    explanationElement.className = 'block-explanation';
+    explanationElement.textContent = annotation;
+    explanationElement.style.display = 'none'; // Hidden by default
+
+    // Add hover functionality to show the explanation
+    verticalLine.addEventListener('mouseenter', () => {
+      explanationElement.style.display = 'block';
+    });
+    verticalLine.addEventListener('mouseleave', () => {
+      explanationElement.style.display = 'none';
+    });
+
+    // Append the explanation and the vertical line to CodeMirror's container
+    const wrapper = this._cm.getWrapperElement();
+    wrapper.appendChild(verticalLine);
+    wrapper.appendChild(explanationElement);
+
+    // Position the explanation element
+    explanationElement.style.position = 'absolute';
+    explanationElement.style.top = `${startCoords.top}px`;
+    explanationElement.style.left = `${lastCharCoords.right + 120}px`; // Place to the right of the vertical line
+
+    return null;
   }
 
   // showFrameScope(frame) {

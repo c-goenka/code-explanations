@@ -19,6 +19,12 @@ function App() {
         return editorRef.current.addLineAnnotation(lineNumber, explanation);
       });
       setAnnotations(annotations.concat(lineAnnotations));
+
+      // Add block annotations
+      const blockAnnotations = blockExplanations.map(({ startLine, endLine, explanation }) => {
+        return editorRef.current.addBlockAnnotation(startLine, endLine, explanation);
+      });
+      setAnnotations(annotations.concat(blockAnnotations));
     }
     const timeout = setTimeout(updateExplanations, 2000);
 
