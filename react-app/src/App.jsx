@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Editor from './CM5Editor.jsx'
 import runExplainer from './explainer.jsx';
 import starterCode from './starter-code.js?raw';
+import starterCode2 from './starter-code-2.py?raw';
 import './App.css'
 
 
@@ -12,7 +13,7 @@ function App() {
   useEffect(() => {
     const updateExplanations = async () => {
       const explanations = await runExplainer(starterCode); // Call the API logic when the app starts
-      const { lineExplanations, blockExplanations } = explanations;
+      const { lineExplanations, blockExplanations, dataFlowExplanations } = explanations;
 
       // Add line annotations
       const lineAnnotations = lineExplanations.map(({ lineNumber, explanation }) => {
@@ -25,9 +26,18 @@ function App() {
         return editorRef.current.addBlockAnnotation(startLine, endLine, explanation);
       });
       setAnnotations(annotations.concat(blockAnnotations));
-    }
-    const timeout = setTimeout(updateExplanations, 2000);
 
+      // Add data flow annotations
+      // TODO
+      const dataFlowAnnotations = dataFlowExplanations.map(({ paramName, explanation, references }) => {
+        // console.log(references)
+        console.log(paramName, explanation, references)
+        return editorRef.current.addDataFlowAnnotation(paramName, explanation, references);
+      })
+      setAnnotations(annotations.concat(dataFlowAnnotations))
+    }
+
+    const timeout = setTimeout(updateExplanations, 2000);
     return () => clearTimeout(timeout);
 
 

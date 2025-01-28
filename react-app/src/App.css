@@ -10,7 +10,7 @@
   margin-top: -1.5em;
   margin-left: 1em;
   max-height: 1.4em;
-  max-width: 8em;
+  max-width: 20em;
   overflow: hidden;
   border: 1px solid #ddd;
   border-radius: 0.5em;
@@ -67,4 +67,23 @@
   left: -5px; /* Expand hover area to the left */
   right: -5px; /* Expand hover area to the right */
   background: transparent; /* Invisible but interactive */
+}
+
+.param-reference {
+  background-color: rgba(255, 200, 0, 0.3);
+  transition: background-color 0.2s;
+}
+.param-reference-hover {
+  background-color: rgba(255, 200, 0, 0.6);
+}
+.param-usage-popup {
+  position: absolute;
+  z-index: 9999;
+  background: #fffad0;
+  border: 1px solid #ddd;
+  border-radius: 0.3em;
+  padding: 0.5em;
+  font-size: 0.9em;
+  max-width: 15em;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }

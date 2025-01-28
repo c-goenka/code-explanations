@@ -196,44 +196,41 @@ class Editor extends Component {
   addLineAnnotation(line, annotation) {
     // let line = Math.floor(Math.random() * this._cm.getDoc().lineCount());
 
-    // dropdown arrow and text on hover code start
+    // Extract the first two words from the annotation
+    const [previewText, ...rest] = annotation.split(':');
+    // const previewText = `${firstWord} ${secondWord}`;
+
+    // Create the annotation element
     let annotationElement = document.createElement('div');
     annotationElement.className = 'line-annotation';
 
-    let arrow = document.createElement('span');
-    arrow.textContent = '▼';
-    arrow.style.cursor = 'pointer';
-    arrow.style.color = '#71797E';
+    // Add the preview text
+    let previewElement = document.createElement('span');
+    previewElement.textContent = previewText;
 
-    let annotationText = document.createElement('span')
-    annotationText.innerHTML = annotation;
-    annotationText.style.display = 'none'; // Hide by default
-    annotationText.style.marginLeft = '0.5em';
+    let fullTextElement = document.createElement('span')
+    fullTextElement.innerHTML = annotation;
+    fullTextElement.style.display = 'none'; // Hide by default
+    fullTextElement.style.marginLeft = '0.5em';
 
-    // Show/hide annotation text on hover
+    // Show/hide full text on hover
     annotationElement.addEventListener('mouseenter', () => {
-      annotationText.style.display = 'inline';
+      fullTextElement.style.display = 'inline';
+      previewElement.style.display = 'none'; // Hide preview text
     });
     annotationElement.addEventListener('mouseleave', () => {
-      annotationText.style.display = 'none';
+      fullTextElement.style.display = 'none';
+      previewElement.style.display = 'inline'; // Show preview text
     });
 
-    annotationElement.appendChild(arrow);
-    annotationElement.appendChild(annotationText);
-    // dropdown arrow and text on hover code end
+    annotationElement.appendChild(previewElement);
+    annotationElement.appendChild(fullTextElement);
 
-    // Original Code (no dropdown arrows)
-    // let annotationElement = document.createElement('div');
-    // annotationElement.className = 'annotation';
-    // annotationElement.innerHTML = annotation;
-
-    let annotationHandler = null; // new Annotation(this._cm, line, annotationElement);
-
-    let pos = this._cm.posFromIndex(this._cm.getDoc().indexFromPos({line: line, ch: 0})-1);
-
+    // Add the annotation widget to the CodeMirror editor
+    let pos = this._cm.posFromIndex(this._cm.getDoc().indexFromPos({ line: line, ch: 0 }) - 1);
     this._cm.addWidget(pos, annotationElement);
 
-    return annotationHandler;
+    return;
   }
 
   addBlockAnnotation(startLine, endLine, annotation) {
@@ -267,13 +264,13 @@ class Editor extends Component {
     const startCoords = this._cm.charCoords({ line: startLine - 1, ch: 0 }, 'local');
     const endCoords = this._cm.charCoords({ line: endLine - 1, ch: 0 }, 'local');
 
-    // Create the vertical line
+    // Create the vertFal line
     const verticalLine = document.createElement('div');
     verticalLine.className = 'vertical-line';
 
     // Set its position and dimensions
     verticalLine.style.top = `${startCoords.top}px`;
-    verticalLine.style.left = `${lastCharCoords.right + 100}px`; // Adjust this value as needed
+    verticalLine.style.left = `${lastCharCoords.right + 150}px`; // Adjust this value as needed
     verticalLine.style.height = `${endCoords.bottom - startCoords.top}px`;
 
     // Add hoverable explanation
@@ -298,9 +295,70 @@ class Editor extends Component {
     // Position the explanation element
     explanationElement.style.position = 'absolute';
     explanationElement.style.top = `${startCoords.top}px`;
-    explanationElement.style.left = `${lastCharCoords.right + 120}px`; // Place to the right of the vertical line
+    explanationElement.style.left = `${lastCharCoords.right + 165}px`; // Place to the right of the vertical line
 
     return null;
+  }
+
+  addDataFlowAnnotation(paramName, explanation, references) {
+    const cmDoc = this._cm.getDoc();
+    const cmWrapper = this._cm.getWrapperElement();
+
+    // 1) Mark the reference ranges in the code
+    const markers = [];
+    references.forEach(ref => {
+      const { lineNumber, startChar, endChar } = ref;
+      const fromPos = { line: lineNumber - 1, ch: startChar }; // zero-based
+      const toPos = { line: lineNumber - 1, ch: endChar };
+
+      // Add a className for highlighting in the rendered DOM
+      const marker = cmDoc.markText(fromPos, toPos, {
+        className: 'param-reference',
+        title: `Parameter: ${paramName}`, // small tooltip
+      });
+      markers.push(marker);
+    });
+
+    // 2) Create a function to highlight/unhighlight all references (globally)
+    const highlightAll = (highlight) => {
+      const allSpans = cmWrapper.querySelectorAll('.param-reference');
+      allSpans.forEach(span => {
+        if (highlight) {
+          span.classList.add('param-reference-hover');
+        } else {
+          span.classList.remove('param-reference-hover');
+        }
+      });
+    };
+
+    // 3) Create a single usage popup element
+    const usageElement = document.createElement('div');
+    usageElement.className = 'param-usage-popup';
+    usageElement.textContent = explanation;
+    usageElement.style.display = 'none'; // hidden by default
+    cmWrapper.appendChild(usageElement);
+
+    // 4) Attach hover listeners to the rendered spans in the DOM
+    //    We do this after CodeMirror has had a chance to render
+    setTimeout(() => {
+      const paramSpans = cmWrapper.querySelectorAll('.param-reference');
+      paramSpans.forEach(span => {
+        span.addEventListener('mouseenter', () => {
+          // Highlight all references
+          highlightAll(true);
+
+          // Position & show the usage popup
+          const rect = span.getBoundingClientRect();
+          usageElement.style.top = (rect.top - 40) + 'px'; // just above
+          usageElement.style.left = rect.left + 'px';
+          usageElement.style.display = 'block';
+        });
+        span.addEventListener('mouseleave', () => {
+          highlightAll(false);
+          usageElement.style.display = 'none';
+        });
+      });
+    }, 0);
   }
 
   // showFrameScope(frame) {
