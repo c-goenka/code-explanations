@@ -79,22 +79,3 @@
   /* Additional styling if needed */
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
-
-/* .param-reference {
-  background-color: rgba(255, 200, 0, 0.3);
-  transition: background-color 0.2s;
-}
-.param-reference-hover {
-  background-color: rgba(255, 200, 0, 0.6);
-}
-.param-usage-popup {
-  position: absolute;
-  z-index: 9999;
-  background: #fffad0;
-  border: 1px solid #ddd;
-  border-radius: 0.3em;
-  padding: 0.5em;
-  font-size: 0.9em;
-  max-width: 15em;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-} */
