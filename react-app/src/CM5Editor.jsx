@@ -106,6 +106,9 @@ class Editor extends Component {
     let annotationElement = document.createElement('div');
     annotationElement.className = 'line-annotation';
 
+    // Save the line number for later reference
+    annotationElement.dataset.line = line;
+
     // Add the preview text
     let previewElement = document.createElement('span');
     previewElement.textContent = previewText;
@@ -113,7 +116,7 @@ class Editor extends Component {
     let fullTextElement = document.createElement('span')
     fullTextElement.innerHTML = annotation;
     fullTextElement.style.display = 'none'; // Hide by default
-    fullTextElement.style.marginLeft = '0.5em';
+    // fullTextElement.style.marginLeft = '0.5em';
 
     // Show/hide full text on hover
     annotationElement.addEventListener('mouseenter', () => {
@@ -136,44 +139,62 @@ class Editor extends Component {
   }
 
   addBlockAnnotation(startLine, endLine, annotation) {
-    // Find the longest line in the block
+    // Find the longest line in the block based on code length
     let maxLineLength = 0;
     let longestLine = startLine; // Default to the start line
     for (let i = startLine - 1; i <= endLine - 1; i++) {
-      const lineContent = this._cm.getLine(i); // Get content of each line
+      const lineContent = this._cm.getLine(i);
       if (lineContent.length > maxLineLength) {
         maxLineLength = lineContent.length;
         longestLine = i;
       }
     }
 
-    // Calculate the position of the last character in the longest line
+    // Get CodeMirror's coordinate information
     const longestLineContent = this._cm.getLine(longestLine);
     const lastCharCoords = this._cm.charCoords(
-      { line: longestLine, ch: longestLineContent.length }, // Position of the last character
+      { line: longestLine, ch: longestLineContent.length },
       'local'
     );
-
-    // Calculate the top and bottom positions of the block
     const startCoords = this._cm.charCoords({ line: startLine - 1, ch: 0 }, 'local');
     const endCoords = this._cm.charCoords({ line: endLine - 1, ch: 0 }, 'local');
 
-    // Create the vertFal line
+    // Create the vertical line element
     const verticalLine = document.createElement('div');
     verticalLine.className = 'vertical-line';
+    // Set a lower z-index so it appears behind line annotations.
+    verticalLine.style.zIndex = '9000';
 
-    // Set its position and dimensions
+    // Get the CodeMirror wrapper for relative positioning.
+    const wrapper = this._cm.getWrapperElement();
+    const wrapperRect = wrapper.getBoundingClientRect();
+
+    // Try to find the annotation widget for the longest line.
+    // Note: since we set dataset.line in addLineAnnotation, we use longestLine+1 because addLineAnnotation uses 1-indexed line numbers.
+    const annotationForLongestLine = wrapper.querySelector(`.line-annotation[data-line="${longestLine + 1}"]`);
+
+    let leftPosition;
+    if (annotationForLongestLine) {
+      // Get its position relative to the wrapper
+      const annRect = annotationForLongestLine.getBoundingClientRect();
+      leftPosition = (annRect.right - wrapperRect.left) + 20; // 10px offset to the right
+    } else {
+      // Fallback: use the right coordinate of the code text.
+      leftPosition = lastCharCoords.right + 10;
+    }
+
+    verticalLine.style.left = `${leftPosition}px`;
     verticalLine.style.top = `${startCoords.top}px`;
-    verticalLine.style.left = `${lastCharCoords.right + 150}px`; // Adjust this value as needed
     verticalLine.style.height = `${endCoords.bottom - startCoords.top}px`;
 
-    // Add hoverable explanation
+    // Create the explanation element (for hover)
     const explanationElement = document.createElement('div');
     explanationElement.className = 'block-explanation';
     explanationElement.textContent = annotation;
-    explanationElement.style.display = 'none'; // Hidden by default
+    explanationElement.style.display = 'none';
+    explanationElement.style.position = 'absolute';
 
-    // Add hover functionality to show the explanation
+    // Add hover functionality
     verticalLine.addEventListener('mouseenter', () => {
       explanationElement.style.display = 'block';
     });
@@ -181,15 +202,14 @@ class Editor extends Component {
       explanationElement.style.display = 'none';
     });
 
-    // Append the explanation and the vertical line to CodeMirror's container
-    const wrapper = this._cm.getWrapperElement();
-    wrapper.appendChild(verticalLine);
+    // *** Alternative approach: Append the vertical line to the CodeMirror scroll element ***
+    const scroller = this._cm.getScrollerElement();
+    scroller.appendChild(verticalLine);
     wrapper.appendChild(explanationElement);
 
-    // Position the explanation element
-    explanationElement.style.position = 'absolute';
+    // Position the explanation element (adjust as needed)
     explanationElement.style.top = `${startCoords.top}px`;
-    explanationElement.style.left = `${lastCharCoords.right + 165}px`; // Place to the right of the vertical line
+    explanationElement.style.left = `${leftPosition + 15}px`; // 15px to the right of the vertical line
 
     return null;
   }
@@ -232,14 +252,31 @@ class Editor extends Component {
     const wrapper = this._cm.getWrapperElement();
     wrapper.appendChild(tooltipElement);
 
+    // Temporarily force the tooltip to render for measurement.
+    tooltipElement.style.visibility = 'hidden';
+    tooltipElement.style.display = 'block';
+
+    // Force a reflow and get the height.
+    const tooltipHeight = tooltipElement.offsetHeight;
+
+    // Now hide it again.
+    tooltipElement.style.display = 'none';
+    tooltipElement.style.visibility = 'visible';
+
     // Add event listeners so that the tooltip shows on hover.
     paramElement.addEventListener('mouseenter', () => {
       tooltipElement.style.display = 'block';
-      // Position the tooltip near the parameter element.
+      // Get the bounding rectangle for the parameter element.
       const rect = paramElement.getBoundingClientRect();
-      tooltipElement.style.top = `${rect.bottom + window.scrollY}px`;
+
+      // Calculate a new position for the tooltip.
+      // Here, we position it above the highlighted text with a small gap.
+      const tooltipGap = -7; // Adjust this value as needed.
+      tooltipElement.style.top = `${rect.top + window.scrollY - tooltipHeight - tooltipGap}px`;
+      // Center the tooltip horizontally relative to the highlighted text.
       tooltipElement.style.left = `${rect.left + window.scrollX}px`;
     });
+
     paramElement.addEventListener('mouseleave', () => {
       tooltipElement.style.display = 'none';
     });

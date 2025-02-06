@@ -7,15 +7,16 @@
 
 .line-annotation {
   display: block;
-  margin-top: -1.5em;
+  margin-top: -1.5em; /* Reduced from -1.5em */
   margin-left: 1em;
-  max-height: 1.4em;
+  max-height: 1.4em;  /* Reduced from 1.4em */
+  line-height: 1.3em; /* Added to control the text's vertical spacing */
   max-width: 20em;
   overflow: hidden;
   border: 1px solid #ddd;
-  border-radius: 0.5em;
+  border-radius: 5px;
   padding: 0 5px;
-  background: #ddd;
+  background: #D3D3D3;
   z-index: 10000;
   cursor: pointer;
 }
@@ -23,40 +24,49 @@
 .line-annotation:hover {
   background: #eee;
   max-height: none;
-  max-width: none;
+  max-width: 600px;
+  line-height: 1.7em;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
   z-index: 10001;
 }
 
-.block-annotation {
-  display: block;
-  margin-top: -1.5em;
-  margin-left: 1em;
-  max-height: 1.4em;
-  max-width: 8em;
-  overflow: hidden;
-  border: 1px solid #ddd;
-  border-radius: 0.5em;
-  padding: 0 5px;
-  background: #ddd;
+.block-explanation {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 0.5em 0.8em;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: opacity 0.2s ease;
+  position: absolute;
   z-index: 10000;
-  cursor: pointer;
+  max-width: 500px;
+  overflow-y: auto;
 }
 
-.block-annotation:hover {
-  background: #eee;
-  max-height: none;
-  max-width: none;
-  z-index: 10001;
+.block-explanation::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #f0f0f0;
 }
 
+.block-explanation:hover {
+  opacity: 0.95;
+}
 
 .vertical-line {
   position: absolute;
   width: 5px;
   background-color: #aaa;
-  z-index: 10000;
+  z-index: 9000;
   cursor: pointer;
-  border-radius: 0.5em;
+  border-radius: 2.5px;
 }
 
 .vertical-line::before {
@@ -70,7 +80,7 @@
 }
 
 .data-flow-annotation {
-  background-color: #fffae6; /* A light highlight */
+  background-color: #fff6d5;
   border-bottom: 1px dotted #f0ad4e;
   cursor: pointer;
 }
