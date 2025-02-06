@@ -40,8 +40,12 @@ export default async function runExplainer(code) {
   const DataFlowExplanation = z.object({
     paramName: z.string(),
     explanation: z.string(),
-    lineNumber: z.number(),
-  })
+    functionDefinitionLineNumber: z.number(),
+    occurrences: z.array(z.object({
+      lineNumber: z.number(),
+      explanation: z.string()
+    }))
+  });
 
   const CodeExplanation = z.object({
     lineExplanations: z.array(LineExplanation),
@@ -57,7 +61,7 @@ export default async function runExplainer(code) {
     {
       role: 'user',
       content: 'Part 1: LINE-BY-LINE EXPLANATIONS. \
-        Provide a line-by-line explanation of the code. Start each explanation with 2-4 words that succinctly summarize the purpose of the line and can function independently. Ensure the few words encapsulate the essence of the line of code while providing context for the full explanation. Follow that with text explaning the entire line. Use the format: [2-4 WORD SUMMARY] : [FULL EXPLANATION]'
+        Provide a line-by-line explanation of the code. Start each explanation with 2-4 words that succinctly summarize the purpose of the line and can function independently. Ensure the few words encapsulate the essence of the line of code, while providing context for the full explanation. Follow that with text explaning the entire line, making sure to be clear of its specific use. Use the format: [2-4 WORD SUMMARY] : [FULL EXPLANATION]'
     },
     {
       role: 'user',
@@ -72,10 +76,14 @@ export default async function runExplainer(code) {
     {
       role: 'user',
       content: 'Part 3: DATA FLOW EXPLANATIONS.\
-                Analyze all function definitions in the code. For every function parameter:\
-                - Explain the purpose of the parameter and how it is used.\
-                - Provide the line number for every function parameter'
-                // - For every occurrence of the parameter in the code, provide the line number, starting character number, and ending character number.'
+                Analyze all function definitions in the code.\
+                For every function parameter, provide the following details:\
+                1. The name of the parameter.\
+                2. A high-level explanation of the parameter\'s purpose and how it is used in the overall code (from the function definition).\
+                3. The line number where the parameter is defined.\
+                4. Every single occurrence of the parameter in the code—outside its definition, including cases where the parameter is passed in to a different function or is used in indexing, property accesses, arithmetic operations, or any other context-aware usage—provide:\
+                    - the line number where this occurrence appears.\
+                    - a context-aware explanation for that specific occurrence.'
     },
     {
       role: 'user',

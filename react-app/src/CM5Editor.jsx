@@ -214,12 +214,12 @@ class Editor extends Component {
     return null;
   }
 
-  addDataFlowAnnotation(paramName, explanation, lineNumber) {
+  addDataFlowAnnotation(paramName, explanation, functionDefinitionLineNumber, occurences) {
     // Get the full code text from CodeMirror.
     const allTheCode = this._cm.getValue();
     const codeLines = allTheCode.split('\n');
     // Convert provided lineNumber (1-indexed) to a 0-indexed value.
-    const lineIndex = lineNumber - 1;
+    const lineIndex = functionDefinitionLineNumber - 1;
 
     // Find the starting character index of the parameter in the line.
     const lineText = codeLines[lineIndex];
@@ -234,7 +234,7 @@ class Editor extends Component {
     }
 
     if (ch === -1) {
-      console.warn(`Parameter "${paramName}" not found on line ${lineNumber}.`);
+      console.warn(`Parameter "${paramName}" not found on line ${functionDefinitionLineNumber}.`);
       return;
     }
     const startPos = { line: lineIndex, ch: ch };
@@ -244,6 +244,11 @@ class Editor extends Component {
     const paramElement = document.createElement('span');
     paramElement.textContent = paramName;
     paramElement.className = 'data-flow-annotation'; // Add this class to your CSS for custom styling.
+
+    // Add a custom attribute to track toggle state.
+    paramElement.dataset.occurrencesVisible = "false";
+    // Prepare an array to hold occurrence markers so we can remove them later.
+    paramElement.occurrenceMarkers = [];
 
     // Create a tooltip element to display the explanation.
     const tooltipElement = document.createElement('div');
@@ -289,6 +294,21 @@ class Editor extends Component {
       tooltipElement.style.display = 'none';
     });
 
+
+    paramElement.addEventListener('click', () => {
+      // Check current toggle state
+      const currentlyVisible = paramElement.dataset.occurrencesVisible === "true";
+      if (!currentlyVisible) {
+        // Toggle on: highlight all occurrences.
+        this.showOccurrenceMarkers(paramElement, occurences); // We'll define this function next.
+        paramElement.dataset.occurrencesVisible = "true";
+      } else {
+        // Toggle off: remove all occurrence highlights.
+        this.hideOccurrenceMarkers(paramElement);
+        paramElement.dataset.occurrencesVisible = "false";
+      }
+    });
+
     // Mark the text corresponding to the parameter with the custom element.
     // Using the `replacedWith` option will swap out the text for our element.
     this._cm.markText(startPos, endPos, {
@@ -296,6 +316,81 @@ class Editor extends Component {
       clearOnEnter: false, // Keep the marker in place.
     });
   }
+
+  showOccurrenceMarkers(paramElement, occurrences) {
+    // Ensure paramElement has a property to store markers.
+    paramElement.occurrenceMarkers = [];
+
+    // Get the full code text and split into lines.
+    const allTheCode = this._cm.getValue();
+    const codeLines = allTheCode.split('\n');
+
+    // For each occurrence object, find its location and mark it.
+    occurrences.forEach(occ => {
+      const occLineIndex = occ.lineNumber - 1;  // Convert to 0-indexed.
+      const occLineText = codeLines[occLineIndex];
+
+      // Find all occurrences in the line (or at least the first occurrence).
+      // You might want to refine this logic if a variable appears more than once on the same line.
+      let ch = occLineText.indexOf(paramElement.textContent);
+      if (ch === -1) {
+        console.warn(`Occurrence of "${paramElement.textContent}" not found on line ${occ.lineNumber}.`);
+        return;
+      }
+      const startPos = { line: occLineIndex, ch: ch };
+      const endPos = { line: occLineIndex, ch: ch + paramElement.textContent.length };
+
+      // Create a marker element for this occurrence.
+      const occElement = document.createElement('span');
+      occElement.textContent = paramElement.textContent;
+      occElement.className = 'occurrence-highlight'; // Create a new CSS class for styling.
+
+      // Create a tooltip for this occurrence.
+      const occTooltip = document.createElement('div');
+      occTooltip.className = 'occurrence-tooltip';
+      occTooltip.innerHTML = occ.explanation;
+      occTooltip.style.display = 'none';
+      occTooltip.style.position = 'absolute';
+      occTooltip.style.backgroundColor = '#f9f9f9';
+      occTooltip.style.border = '1px solid #ccc';
+      occTooltip.style.padding = '5px';
+      occTooltip.style.borderRadius = '4px';
+      occTooltip.style.zIndex = '10000';
+
+      // Append the tooltip to the wrapper.
+      const wrapper = this._cm.getWrapperElement();
+      wrapper.appendChild(occTooltip);
+
+      // Add tooltip hover behavior for the occurrence element.
+      occElement.addEventListener('mouseenter', () => {
+        occTooltip.style.display = 'block';
+        const rect = occElement.getBoundingClientRect();
+        const tooltipGap = -41; // Adjust gap if needed.
+        occTooltip.style.top = `${rect.bottom + window.scrollY + tooltipGap}px`;
+        occTooltip.style.left = `${rect.left + window.scrollX}px`;
+      });
+      occElement.addEventListener('mouseleave', () => {
+        occTooltip.style.display = 'none';
+      });
+
+      // Use CodeMirror's markText to replace the text with occElement.
+      const marker = this._cm.markText(startPos, endPos, {
+        replacedWith: occElement,
+        clearOnEnter: false,
+      });
+
+      // Save the marker so we can remove it later.
+      paramElement.occurrenceMarkers.push(marker);
+    });
+  }
+
+  hideOccurrenceMarkers(paramElement) {
+    if (paramElement.occurrenceMarkers && paramElement.occurrenceMarkers.length > 0) {
+      paramElement.occurrenceMarkers.forEach(marker => marker.clear());
+      paramElement.occurrenceMarkers = [];
+    }
+  }
+
 }
 
 Editor.lintOptions = {

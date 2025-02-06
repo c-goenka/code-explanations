@@ -90,3 +90,14 @@
   max-width: 30em;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
+.occurrence-highlight {
+  background-color: #e0f7fa; /* Adjust to your preference */
+  border-bottom: 1px dotted #0097a7;
+  cursor: pointer;
+}
+
+.occurrence-tooltip {
+  max-width: 30em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}

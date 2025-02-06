@@ -28,8 +28,8 @@ function App() {
       setAnnotations(annotations.concat(blockAnnotations));
 
       // Add data flow annotations
-      const dataFlowAnnotations = dataFlowExplanations.map(({ paramName, explanation, lineNumber }) => {
-        return editorRef.current.addDataFlowAnnotation(paramName, explanation, lineNumber);
+      const dataFlowAnnotations = dataFlowExplanations.map(({ paramName, explanation, functionDefinitionLineNumber, occurrences }) => {
+        return editorRef.current.addDataFlowAnnotation(paramName, explanation, functionDefinitionLineNumber, occurrences);
       });
       setAnnotations(annotations.concat(dataFlowAnnotations))
     }
