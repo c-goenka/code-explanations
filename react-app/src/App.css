@@ -69,7 +69,18 @@
   background: transparent; /* Invisible but interactive */
 }
 
-.param-reference {
+.data-flow-annotation {
+  background-color: #fffae6; /* A light highlight */
+  border-bottom: 1px dotted #f0ad4e;
+  cursor: pointer;
+}
+
+.data-flow-tooltip {
+  /* Additional styling if needed */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* .param-reference {
   background-color: rgba(255, 200, 0, 0.3);
   transition: background-color 0.2s;
 }
@@ -86,4 +97,4 @@
   font-size: 0.9em;
   max-width: 15em;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
+} */

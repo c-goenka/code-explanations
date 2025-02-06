@@ -28,14 +28,12 @@ function App() {
       setAnnotations(annotations.concat(blockAnnotations));
 
       // Add data flow annotations
-      // TODO
-      const dataFlowAnnotations = dataFlowExplanations.map(({ paramName, explanation, references }) => {
-        // console.log(references)
-        console.log(paramName, explanation, references)
-        return editorRef.current.addDataFlowAnnotation(paramName, explanation, references);
-      })
+      const dataFlowAnnotations = dataFlowExplanations.map(({ paramName, explanation, lineNumber }) => {
+        return editorRef.current.addDataFlowAnnotation(paramName, explanation, lineNumber);
+      });
       setAnnotations(annotations.concat(dataFlowAnnotations))
     }
+
 
     const timeout = setTimeout(updateExplanations, 2000);
     return () => clearTimeout(timeout);

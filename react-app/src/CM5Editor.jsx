@@ -198,7 +198,6 @@ class Editor extends Component {
 
     // Extract the first two words from the annotation
     const [previewText, ...rest] = annotation.split(':');
-    // const previewText = `${firstWord} ${secondWord}`;
 
     // Create the annotation element
     let annotationElement = document.createElement('div');
@@ -300,65 +299,63 @@ class Editor extends Component {
     return null;
   }
 
-  addDataFlowAnnotation(paramName, explanation, references) {
-    const cmDoc = this._cm.getDoc();
-    const cmWrapper = this._cm.getWrapperElement();
+  addDataFlowAnnotation(paramName, explanation, lineNumber) {
+    // Get the full code text from CodeMirror.
+    const allTheCode = this._cm.getValue();
+    const codeLines = allTheCode.split('\n');
+    // Convert provided lineNumber (1-indexed) to a 0-indexed value.
+    const lineIndex = lineNumber - 1;
 
-    // 1) Mark the reference ranges in the code
-    const markers = [];
-    references.forEach(ref => {
-      const { lineNumber, startChar, endChar } = ref;
-      const fromPos = { line: lineNumber - 1, ch: startChar }; // zero-based
-      const toPos = { line: lineNumber - 1, ch: endChar };
+    // Find the starting character index of the parameter in the line.
+    // (This is the logic you mentioned.)
+    const lineText = codeLines[lineIndex];
+    const ch = lineText.indexOf(paramName);
+    if (ch === -1) {
+      console.warn(`Parameter "${paramName}" not found on line ${lineNumber}.`);
+      return;
+    }
+    const startPos = { line: lineIndex, ch: ch };
+    const endPos = { line: lineIndex, ch: ch + paramName.length };
 
-      // Add a className for highlighting in the rendered DOM
-      const marker = cmDoc.markText(fromPos, toPos, {
-        className: 'param-reference',
-        title: `Parameter: ${paramName}`, // small tooltip
-      });
-      markers.push(marker);
+    // Create an inline element to highlight the parameter.
+    const paramElement = document.createElement('span');
+    paramElement.textContent = paramName;
+    paramElement.className = 'data-flow-annotation'; // Add this class to your CSS for custom styling.
+
+    // Create a tooltip element to display the explanation.
+    const tooltipElement = document.createElement('div');
+    tooltipElement.className = 'data-flow-tooltip'; // Add styling via CSS if desired.
+    tooltipElement.innerHTML = explanation;
+    tooltipElement.style.display = 'none';
+    tooltipElement.style.position = 'absolute';
+    tooltipElement.style.backgroundColor = '#f9f9f9';
+    tooltipElement.style.border = '1px solid #ccc';
+    tooltipElement.style.padding = '5px';
+    tooltipElement.style.borderRadius = '4px';
+    tooltipElement.style.zIndex = '10000';
+
+    // Append the tooltip to the CodeMirror wrapper so that it overlays the editor.
+    const wrapper = this._cm.getWrapperElement();
+    wrapper.appendChild(tooltipElement);
+
+    // Add event listeners so that the tooltip shows on hover.
+    paramElement.addEventListener('mouseenter', () => {
+      tooltipElement.style.display = 'block';
+      // Position the tooltip near the parameter element.
+      const rect = paramElement.getBoundingClientRect();
+      tooltipElement.style.top = `${rect.bottom + window.scrollY}px`;
+      tooltipElement.style.left = `${rect.left + window.scrollX}px`;
+    });
+    paramElement.addEventListener('mouseleave', () => {
+      tooltipElement.style.display = 'none';
     });
 
-    // 2) Create a function to highlight/unhighlight all references (globally)
-    const highlightAll = (highlight) => {
-      const allSpans = cmWrapper.querySelectorAll('.param-reference');
-      allSpans.forEach(span => {
-        if (highlight) {
-          span.classList.add('param-reference-hover');
-        } else {
-          span.classList.remove('param-reference-hover');
-        }
-      });
-    };
-
-    // 3) Create a single usage popup element
-    const usageElement = document.createElement('div');
-    usageElement.className = 'param-usage-popup';
-    usageElement.textContent = explanation;
-    usageElement.style.display = 'none'; // hidden by default
-    cmWrapper.appendChild(usageElement);
-
-    // 4) Attach hover listeners to the rendered spans in the DOM
-    //    We do this after CodeMirror has had a chance to render
-    setTimeout(() => {
-      const paramSpans = cmWrapper.querySelectorAll('.param-reference');
-      paramSpans.forEach(span => {
-        span.addEventListener('mouseenter', () => {
-          // Highlight all references
-          highlightAll(true);
-
-          // Position & show the usage popup
-          const rect = span.getBoundingClientRect();
-          usageElement.style.top = (rect.top - 40) + 'px'; // just above
-          usageElement.style.left = rect.left + 'px';
-          usageElement.style.display = 'block';
-        });
-        span.addEventListener('mouseleave', () => {
-          highlightAll(false);
-          usageElement.style.display = 'none';
-        });
-      });
-    }, 0);
+    // Mark the text corresponding to the parameter with the custom element.
+    // Using the `replacedWith` option will swap out the text for our element.
+    this._cm.markText(startPos, endPos, {
+      replacedWith: paramElement,
+      clearOnEnter: false, // Keep the marker in place.
+    });
   }
 
   // showFrameScope(frame) {
