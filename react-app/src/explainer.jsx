@@ -57,7 +57,7 @@ export default async function runExplainer(code) {
     {
       role: 'user',
       content: 'Part 1: LINE-BY-LINE EXPLANATIONS. \
-        Provide a line-by-line explanation of the code. Start each explanation with a 2-4 words that succinctly summarize the purpose of the line and can function independently. Ensure the few words encapsulate the essence of the line of code while providing context for the full explanation. Follow that with text explaning the entire line. Use the format: [2-4 WORD SUMMARY] : [FULL EXPLANATION]'
+        Provide a line-by-line explanation of the code. Start each explanation with 2-4 words that succinctly summarize the purpose of the line and can function independently. Ensure the few words encapsulate the essence of the line of code while providing context for the full explanation. Follow that with text explaning the entire line. Use the format: [2-4 WORD SUMMARY] : [FULL EXPLANATION]'
     },
     {
       role: 'user',

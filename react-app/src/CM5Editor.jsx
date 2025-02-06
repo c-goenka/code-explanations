@@ -223,7 +223,16 @@ class Editor extends Component {
 
     // Find the starting character index of the parameter in the line.
     const lineText = codeLines[lineIndex];
-    const ch = lineText.indexOf(paramName);
+    const parenIndex = lineText.indexOf('(');
+    let ch = -1;
+    if (parenIndex !== -1) {
+      // Start searching from the opening parenthesis
+      ch = lineText.indexOf(paramName, parenIndex);
+    } else {
+      // Fallback: search the whole line if no parenthesis is found.
+      ch = lineText.indexOf(paramName);
+    }
+
     if (ch === -1) {
       console.warn(`Parameter "${paramName}" not found on line ${lineNumber}.`);
       return;
