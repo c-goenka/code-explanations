@@ -263,7 +263,6 @@ class Editor extends Component {
 
     // Temporarily force the tooltip to render for measurement.
     tooltipElement.style.visibility = 'hidden';
-    tooltipElement.style.display = 'block';
 
     // Force a reflow and get the height.
     const tooltipHeight = tooltipElement.offsetHeight;
@@ -280,7 +279,7 @@ class Editor extends Component {
 
       // Calculate a new position for the tooltip.
       // Here, we position it above the highlighted text with a small gap.
-      const tooltipGap = -7; // Adjust this value as needed.
+      const tooltipGap = 25; // Adjust this value as needed.
       tooltipElement.style.top = `${rect.top + window.scrollY - tooltipHeight - tooltipGap}px`;
       // Center the tooltip horizontally relative to the highlighted text.
       tooltipElement.style.left = `${rect.left + window.scrollX}px`;
