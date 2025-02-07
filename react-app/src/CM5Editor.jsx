@@ -243,16 +243,11 @@ class Editor extends Component {
     // Create an inline element to highlight the parameter.
     const paramElement = document.createElement('span');
     paramElement.textContent = paramName;
-    paramElement.className = 'data-flow-annotation'; // Add this class to your CSS for custom styling.
-
-    // Add a custom attribute to track toggle state.
-    paramElement.dataset.occurrencesVisible = "false";
-    // Prepare an array to hold occurrence markers so we can remove them later.
-    paramElement.occurrenceMarkers = [];
+    paramElement.className = 'data-flow-annotation'; // Use your CSS for custom styling.
 
     // Create a tooltip element to display the explanation.
     const tooltipElement = document.createElement('div');
-    tooltipElement.className = 'data-flow-tooltip'; // Add styling via CSS if desired.
+    tooltipElement.className = 'data-flow-tooltip';
     tooltipElement.innerHTML = explanation;
     tooltipElement.style.display = 'none';
     tooltipElement.style.position = 'absolute';
@@ -268,124 +263,152 @@ class Editor extends Component {
 
     // Temporarily force the tooltip to render for measurement.
     tooltipElement.style.visibility = 'hidden';
-
-    // Force a reflow and get the height.
     const tooltipHeight = tooltipElement.offsetHeight;
-
-    // Now hide it again.
     tooltipElement.style.display = 'none';
     tooltipElement.style.visibility = 'visible';
 
-    // Add event listeners so that the tooltip shows on hover.
+    // Add event listeners for hover behavior that changes based on toggle state.
     paramElement.addEventListener('mouseenter', () => {
-      tooltipElement.style.display = 'block';
-      // Get the bounding rectangle for the parameter element.
-      const rect = paramElement.getBoundingClientRect();
-
-      // Calculate a new position for the tooltip.
-      // Here, we position it above the highlighted text with a small gap.
-      const tooltipGap = 25; // Adjust this value as needed.
-      tooltipElement.style.top = `${rect.top + window.scrollY - tooltipHeight - tooltipGap}px`;
-      // Center the tooltip horizontally relative to the highlighted text.
-      tooltipElement.style.left = `${rect.left + window.scrollX}px`;
+      if (paramElement.dataset.occurrencesVisible === "true") {
+        // Toggled on: hide the tooltip when hovered.
+        tooltipElement.style.display = 'none';
+      } else {
+        // Toggled off: show the tooltip on hover.
+        tooltipElement.style.display = 'block';
+        const rect = paramElement.getBoundingClientRect();
+        const tooltipGap = 25; // Adjust as needed.
+        tooltipElement.style.top = `${rect.top + window.scrollY - tooltipHeight - tooltipGap}px`;
+        tooltipElement.style.left = `${rect.left + window.scrollX}px`;
+      }
     });
 
     paramElement.addEventListener('mouseleave', () => {
-      tooltipElement.style.display = 'none';
+      if (paramElement.dataset.occurrencesVisible === "true") {
+        // Toggled on: show the tooltip when mouse leaves.
+        tooltipElement.style.display = 'block';
+      } else {
+        // Toggled off: hide the tooltip when mouse leaves.
+        tooltipElement.style.display = 'none';
+      }
     });
 
+    // Add a custom attribute to track toggle state.
+    paramElement.dataset.occurrencesVisible = "false";
+    // Prepare an array to hold occurrence markers for later removal.
+    paramElement.occurrenceMarkers = [];
 
+    // Add click event listener to toggle occurrences as well as the parameter explanation.
     paramElement.addEventListener('click', () => {
-      // Check current toggle state
       const currentlyVisible = paramElement.dataset.occurrencesVisible === "true";
       if (!currentlyVisible) {
-        // Toggle on: highlight all occurrences.
-        this.showOccurrenceMarkers(paramElement, occurences); // We'll define this function next.
+        // Toggle on: show all occurrences and display the parameter explanation permanently.
+        this.showOccurrenceMarkers(paramElement, occurences);
+        tooltipElement.style.display = 'block';
         paramElement.dataset.occurrencesVisible = "true";
       } else {
-        // Toggle off: remove all occurrence highlights.
+        // Toggle off: remove all occurrence highlights and revert the parameter explanation.
         this.hideOccurrenceMarkers(paramElement);
+        tooltipElement.style.display = 'none';
         paramElement.dataset.occurrencesVisible = "false";
       }
     });
 
     // Mark the text corresponding to the parameter with the custom element.
-    // Using the `replacedWith` option will swap out the text for our element.
     this._cm.markText(startPos, endPos, {
       replacedWith: paramElement,
-      clearOnEnter: false, // Keep the marker in place.
+      clearOnEnter: false,
     });
   }
 
   showOccurrenceMarkers(paramElement, occurrences) {
-    // Ensure paramElement has a property to store markers.
+    // Initialize the array to store markers.
     paramElement.occurrenceMarkers = [];
 
-    // Get the full code text and split into lines.
+    // Get the full code text and split it into lines.
     const allTheCode = this._cm.getValue();
     const codeLines = allTheCode.split('\n');
 
-    // For each occurrence object, find its location and mark it.
-    occurrences.forEach(occ => {
+    // Loop through each occurrence.
+    for (let i = 0; i < occurrences.length; i++) {
+      const occ = occurrences[i];
       const occLineIndex = occ.lineNumber - 1;  // Convert to 0-indexed.
       const occLineText = codeLines[occLineIndex];
 
-      // Find all occurrences in the line (or at least the first occurrence).
-      // You might want to refine this logic if a variable appears more than once on the same line.
+      // Find the occurrence in the line.
       let ch = occLineText.indexOf(paramElement.textContent);
       if (ch === -1) {
         console.warn(`Occurrence of "${paramElement.textContent}" not found on line ${occ.lineNumber}.`);
-        return;
+        continue; // Skip if not found.
       }
       const startPos = { line: occLineIndex, ch: ch };
       const endPos = { line: occLineIndex, ch: ch + paramElement.textContent.length };
 
-      // Create a marker element for this occurrence.
+      // Create the marker element that replaces the occurrence text.
       const occElement = document.createElement('span');
       occElement.textContent = paramElement.textContent;
-      occElement.className = 'occurrence-highlight'; // Create a new CSS class for styling.
+      occElement.className = 'occurrence-highlight'; // Style this class in your CSS.
 
-      // Create a tooltip for this occurrence.
+      // Create the tooltip element for this occurrence.
       const occTooltip = document.createElement('div');
-      occTooltip.className = 'occurrence-tooltip';
+      occTooltip.className = 'occurrence-tooltip'; // Style this class in your CSS.
       occTooltip.innerHTML = occ.explanation;
-      occTooltip.style.display = 'none';
       occTooltip.style.position = 'absolute';
       occTooltip.style.backgroundColor = '#f9f9f9';
       occTooltip.style.border = '1px solid #ccc';
       occTooltip.style.padding = '5px';
       occTooltip.style.borderRadius = '4px';
       occTooltip.style.zIndex = '10000';
+      occTooltip.style.display = 'block'; // Always show the tooltip.
 
-      // Append the tooltip to the wrapper.
+      // Append the tooltip to the CodeMirror wrapper.
       const wrapper = this._cm.getWrapperElement();
       wrapper.appendChild(occTooltip);
 
-      // Add tooltip hover behavior for the occurrence element.
-      occElement.addEventListener('mouseenter', () => {
-        occTooltip.style.display = 'block';
+      // Use a slight delay to ensure occElement is rendered, then position the tooltip.
+      setTimeout(() => {
         const rect = occElement.getBoundingClientRect();
-        const tooltipGap = -41; // Adjust gap if needed.
+        const tooltipGap = -41; // Adjust this value as needed for vertical positioning.
         occTooltip.style.top = `${rect.bottom + window.scrollY + tooltipGap}px`;
         occTooltip.style.left = `${rect.left + window.scrollX}px`;
-      });
-      occElement.addEventListener('mouseleave', () => {
+      }, 0);
+
+      // Add event listeners to toggle tooltip display on hover.
+      occElement.addEventListener('mouseenter', () => {
         occTooltip.style.display = 'none';
       });
+      occElement.addEventListener('mouseleave', () => {
+        occTooltip.style.display = 'block';
+      });
 
-      // Use CodeMirror's markText to replace the text with occElement.
+      // Create a CodeMirror marker to replace the text with the occurrence element.
       const marker = this._cm.markText(startPos, endPos, {
         replacedWith: occElement,
         clearOnEnter: false,
       });
 
-      // Save the marker so we can remove it later.
+      // Attach the tooltip to the marker so we can refer to it later if needed.
+      marker.occurrenceTooltip = occTooltip;
+
+      // Save the marker for future removal.
       paramElement.occurrenceMarkers.push(marker);
-    });
+    }
+
+    // Loop over all occurrence markers and force their tooltips to display.
+    for (let marker of paramElement.occurrenceMarkers) {
+      if (marker.occurrenceTooltip) {
+        marker.occurrenceTooltip.style.display = 'block';
+      }
+    }
+
   }
 
   hideOccurrenceMarkers(paramElement) {
     if (paramElement.occurrenceMarkers && paramElement.occurrenceMarkers.length > 0) {
+      for (let marker of paramElement.occurrenceMarkers) {
+        if (marker.occurrenceTooltip) {
+          marker.occurrenceTooltip.style.display = 'none';
+        }
+      }
       paramElement.occurrenceMarkers.forEach(marker => marker.clear());
       paramElement.occurrenceMarkers = [];
     }
