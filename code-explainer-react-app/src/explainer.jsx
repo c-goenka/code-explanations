@@ -95,7 +95,7 @@ export default async function runExplainer(code) {
 
   const completion = await openai.beta.chat.completions.parse({
     model: 'gpt-4o-mini',
-    temperature: 0.4,
+    temperature: 0.3,
     messages,
     response_format: zodResponseFormat(CodeExplanation, 'explanation'),
   });
